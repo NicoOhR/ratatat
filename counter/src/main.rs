@@ -1,5 +1,6 @@
-use std::io;
+use std::{fmt::Error, io};
 
+use color_eyre::eyre::Context;
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
 use ratatui::{
     prelude::*,
@@ -7,6 +8,13 @@ use ratatui::{
     widgets::{block::*,*},
 };
 
+use color_eyre::{
+    eyre::{bail, WrapErr},
+    Result,
+};
+
+
+mod errors;
 mod tui;
 
 #[derive(Debug, Default)]
@@ -16,10 +24,10 @@ pub struct App{
 }
 
 impl App {
-    pub fn run(&mut self, terminal: &mut tui::Tui) -> io::Result<()>{
+    pub fn run(&mut self, terminal: &mut tui::Tui) -> Result<()>{
         while !self.exit {
             terminal.draw(|frame| self.render_frame(frame))?;
-            self.handle_events()?;
+            self.handle_events().wrap_err("handle events failed")?;
         }
         Ok(())
     }
@@ -52,6 +60,9 @@ impl App {
     }
 
     fn decrement_counter(&mut self){
+        if self.counter == 0 {
+            panic!("NO NEGATIVE NUMBERS");
+        }
         self.counter -= 1;
     }
 
@@ -81,7 +92,8 @@ impl Widget for &App {
     }
 }
 
-fn main() -> io::Result<()> {
+fn main() -> Result<()> {
+    errors::install_hooks()?;
     let mut terminal = tui::init()?;
     let app_result = App::default().run(&mut terminal);
     tui::restore()?;
