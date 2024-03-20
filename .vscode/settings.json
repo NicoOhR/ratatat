@@ -1,0 +1,6 @@
+{
+    "rust-analyzer.linkedProjects": [
+        "./cinetrack/Cargo.toml",
+        "./counter/Cargo.toml"
+    ]
+}
