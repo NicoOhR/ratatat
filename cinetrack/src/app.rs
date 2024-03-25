@@ -32,8 +32,8 @@ pub enum AddingMovie {
 pub struct App{
     pub movie_name_input: String,
     pub date_watched_input: Date,
-    pub rating: u8,
-    pub entries: std::collections::HashMap<String, (Date, u8)>, //should probably make movie info struct
+    pub rating_input: String,
+    pub entries: std::collections::HashMap<String, (Date, String)>, //should probably make movie info struct
     pub current_screen: CurrentScreen,
     pub currently_editing: Option<AddingMovie>,
 }
@@ -58,7 +58,7 @@ impl Date{
             month: 0,
             day: 0,
         }
-    } 
+    }
 }
 
 impl App {
@@ -66,7 +66,7 @@ impl App {
         App {
             movie_name_input: String::new(),
             date_watched_input: Date::new(),
-            rating: 0,
+            rating_input: String::new(),
             entries: std::collections::HashMap::new(),
             current_screen: CurrentScreen::Main,
             currently_editing: None,
@@ -74,10 +74,10 @@ impl App {
     }
 
     pub fn save_new_movie(&mut self){
-        self.entries.insert(self.movie_name_input.clone(), (self. date_watched_input.clone(), self.rating.clone()));
+        self.entries.insert(self.movie_name_input.clone(), (self. date_watched_input.clone(), self.rating_input.clone()));
 
         self.movie_name_input = String::new();
-        self.rating = 0;
+        self.rating_input = String::new();
         self.date_watched_input = Date::new();
 
         self.currently_editing = None; 
