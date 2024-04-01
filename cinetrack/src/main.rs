@@ -17,7 +17,8 @@ use ratatui::{
 };
 
 mod app;
-//mod ui;
+mod ui;
+
 use crate::{
     app::{App, CurrentScreen, AddingMovie},
     //ui::ui,
