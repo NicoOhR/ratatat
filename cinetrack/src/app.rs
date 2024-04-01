@@ -9,12 +9,7 @@ use ratatui::{
 
 use serde::ser::{Serialize, Serializer, SerializeStruct};
 
-#[derive(Clone)]
-pub struct Date{
-    year: u8,
-    month: u8, 
-    day: u8,
-}
+use time::{Date, Month, OffsetDateTime};
 
 pub enum CurrentScreen {
     Main,
@@ -38,34 +33,11 @@ pub struct App{
     pub currently_editing: Option<AddingMovie>,
 }
 
-impl Serialize for Date {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: Serializer {
-                let mut state = serializer.serialize_struct("Date", 3)?;
-                state.serialize_field("year", &self.year)?;
-                state.serialize_field("month", &self.month)?;
-                state.serialize_field("day", &self.day)?;
-                state.end()
-    }
-}
-
-impl Date{
-    //initialize empty date??
-    pub fn new() -> Date{
-        Date{
-            year: 0,
-            month: 0,
-            day: 0,
-        }
-    }
-}
-
 impl App {
     pub fn new() -> App{
         App {
             movie_name_input: String::new(),
-            date_watched_input: Date::new(),
+            date_watched_input: Date::from_ordinal_date(1990, 355).unwrap(),
             rating_input: String::new(),
             entries: std::collections::HashMap::new(),
             current_screen: CurrentScreen::Main,
@@ -78,7 +50,7 @@ impl App {
 
         self.movie_name_input = String::new();
         self.rating_input = String::new();
-        self.date_watched_input = Date::new();
+        self.date_watched_input = Date::from_ordinal_date(1990, 355).unwrap();
 
         self.currently_editing = None; 
     }
