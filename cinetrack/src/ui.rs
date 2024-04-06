@@ -59,4 +59,47 @@ pub fn ui(f: &mut Frame, app: &App){
         ))));
     }
 
+    let list = List::new(list_items);
+
+    f.render_widget(list, chunks[1]);
+
+    let current_navigation_text = vec![
+        match app.current_screen{
+            CurrentScreen::Main => {
+                Span::styled("Normal", Style::default().fg(Color::Green))
+            }
+            CurrentScreen::MoviePage => {
+                Span::styled("Adding Movie", Style::default().fg(Color::Yellow))
+            }
+            CurrentScreen::Exiting => {
+                Span::styled("Exiting", Style::default().fg(Color::LightRed))
+            }
+        }
+        .to_owned(),
+        Span::styled(" | ", Style::default().fg(Color::White)),
+        {
+            if let Some(editing) = &app.currently_editing {
+                match editing {
+                    AddingMovie::Title => Span::styled(
+                        "Editing Title",
+                        Style::default().fg(Color::Green),
+                    ),
+                    AddingMovie::Rating => Span::styled(
+                        "Editing Rating",
+                        Style::default().fg(Color::LightGreen),
+                    ),
+                    AddingMovie::DateWatched => Span::styled(
+                        "Editing Date",
+                        Style::default().fg(Color::Green),
+                    ),
+                }
+            } else {
+                Span::styled(
+                    "Not Editing Anything",
+                    Style::default().fg(Color::White),
+                )
+            }
+        },
+    ];
+
 }

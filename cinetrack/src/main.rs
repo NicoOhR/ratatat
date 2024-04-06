@@ -60,7 +60,7 @@ fn run_app<B: Backend>(
     app: &mut App,
 ) -> io::Result<bool>{
     loop{
-        terminal.draw(|f| ui(f,app))?;
+        terminal.draw(|f| ui::ui(f,app))?;
         if let Event::Key(key) = event::read()? {
             if key.kind == event::KeyEventKind::Release{
                 continue;
