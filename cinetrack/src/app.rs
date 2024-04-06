@@ -9,13 +9,24 @@ use ratatui::{
 
 use serde::ser::{Serialize, Serializer, SerializeStruct};
 
-use time::{Date, Month, OffsetDateTime};
+use time::Date;
+use time::format_description;
+use time::macros::date;
+
+use std::fmt;
 
 pub enum CurrentScreen {
     Main,
     //UserPage, add later
     MoviePage,
     Exiting,
+}
+
+pub struct WatchDate(Date);
+
+pub struct MovieInfo{
+    pub date_watched: Date,
+    pub rating: String,
 }
 
 pub enum AddingMovie {
@@ -28,9 +39,44 @@ pub struct App{
     pub movie_name_input: String,
     pub date_watched_input: Date,
     pub rating_input: String,
-    pub entries: std::collections::HashMap<String, (Date, String)>, //should probably make movie info struct
+    pub entries: std::collections::HashMap<String, MovieInfo>, //should probably make movie info struct
     pub current_screen: CurrentScreen,
     pub currently_editing: Option<AddingMovie>,
+}
+
+impl fmt::Display for MovieInfo {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result{
+        write!(f, "Date: {} Rating: {}", self.date_watched, self.rating)
+    }
+}
+
+impl WatchDate {
+    fn format(&self) -> String{
+        let date_string = format!("{} - {} - {}", self.0.year(), self.0.month(), self.0.day());
+        date_string
+    }
+}
+
+impl Serialize for WatchDate {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let formatted_date = self.format();
+        serializer.serialize_str(&formatted_date)
+    }
+}
+
+
+impl Serialize for MovieInfo{
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: Serializer {
+        let mut state = serializer.serialize_struct("Movie Info", 2)?;
+        state.serialize_field("Date Watched", &self.date_watched)?;
+        state.serialize_field("Rating", &self.rating)?;
+        state.end()
+    }
 }
 
 impl App {
@@ -46,7 +92,12 @@ impl App {
     }
 
     pub fn save_new_movie(&mut self){
-        self.entries.insert(self.movie_name_input.clone(), (self. date_watched_input.clone(), self.rating_input.clone()));
+        let new_movie_info = MovieInfo {
+            date_watched: self. date_watched_input.clone(),
+            rating: self.rating_input.clone(),
+        };
+        
+        self.entries.insert(self.movie_name_input.clone(), new_movie_info);
 
         self.movie_name_input = String::new();
         self.rating_input = String::new();
