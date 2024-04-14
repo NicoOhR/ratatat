@@ -6,10 +6,12 @@ use ratatui::{
     symbols::border,
     widgets::{block::*,*},
 };
+use serde::{Serialize, Deserialize};
 
-use serde::ser::{Serialize, Serializer, SerializeStruct};
 
-use chrono::DateTime;
+
+
+use chrono::{DateTime, TimeZone, Utc};
 use std::fmt;
 
 pub enum CurrentScreen {
@@ -21,7 +23,7 @@ pub enum CurrentScreen {
 
 
 pub struct MovieInfo{
-    pub date_watched: DateTime,
+    pub date_watched: DateTime<Utc>,
     pub rating: String,
 }
 
@@ -33,7 +35,7 @@ pub enum AddingMovie {
 
 pub struct App{
     pub movie_name_input: String,
-    pub date_watched_input: Date,
+    pub date_watched_input: Vec<u8>,
     pub rating_input: String,
     pub entries: std::collections::HashMap<String, MovieInfo>, //should probably make movie info struct
     pub current_screen: CurrentScreen,
@@ -46,40 +48,16 @@ impl fmt::Display for MovieInfo {
     }
 }
 
-impl WatchDate {
-    fn format(&self) -> String{
-        let date_string = format!("{} - {} - {}", self.0.year(), self.0.month(), self.0.day());
-        date_string
-    }
+impl Serialize for MovieInfo {
+    
 }
 
-impl Serialize for WatchDate {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let formatted_date = self.format();
-        serializer.serialize_str(&formatted_date)
-    }
-}
-
-
-impl Serialize for MovieInfo{
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: Serializer {
-        let mut state = serializer.serialize_struct("Movie Info", 2)?;
-        state.serialize_field("Date Watched", &self.date_watched)?;
-        state.serialize_field("Rating", &self.rating)?;
-        state.end()
-    }
-}
 
 impl App {
     pub fn new() -> App{
         App {
             movie_name_input: String::new(),
-            date_watched_input: Date::from_ordinal_date(1990, 355).unwrap(),
+            date_watched_input: Vec::new(),
             rating_input: String::new(),
             entries: std::collections::HashMap::new(),
             current_screen: CurrentScreen::Main,
