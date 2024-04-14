@@ -102,4 +102,61 @@ pub fn ui(f: &mut Frame, app: &App){
         },
     ];
 
+    let mode_footer = Paragraph::new(Line::from(current_navigation_text)).block(Block::default().borders(Borders::ALL));
+
+    let current_keys_hint = {
+        match app.current_screen {
+            CurrentScreen::Main => Span::styled("(q) to quit", Style::default().fg(Color::Red),),
+            CurrentScreen::Exiting => Span::styled("cancel", Style::default().fg(Color::Red),),
+            CurrentScreen::MoviePage => Span::styled("quit", Style::default().fg(Color::Red),),
+        }
+    };
+
+    let key_notes_footer = Paragraph::new(Line::from(current_keys_hint)).
+    block(Block::default().borders(Borders::ALL));
+
+    let footer_chunks = Layout::default()
+    .direction(Direction::Horizontal)
+    .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+    .split(chunks[2]);
+
+    f.render_widget(mode_footer, footer_chunks[0]);
+    f.render_widget(key_notes_footer, footer_chunks[1]);
+
+    if let Some(editing) = &app.currently_editing {
+        let popup_block = Block::default()
+            .title("Enter a new movie")
+            .borders(Borders::NONE)
+            .style(Style::default().bg(Color::DarkGray));
+        let area = centered_rect(60, 25, f.size());
+        f.render_widget(popup_block, area);
+
+        let popup_chunks = Layout::default()
+            .direction(Direction::Horizontal)
+            .margin(1)
+            .constraints([
+                Constraint::Percentage(50),
+                Constraint::Percentage(30),
+                Constraint::Percentage(20),
+            ])
+            .split(area);
+
+        let mut title_block = Block::default().title("Name").borders(Borders::ALL);
+        let mut date_block = Block::default().title("Date").borders(Borders::ALL);
+        let mut rating_block = Block::default().title("Rating").borders(Borders::ALL);
+
+        let active_style = Style::default().bg(Color::LightYellow).fg(Color::Black);
+
+        match editing {
+            AddingMovie::Title => title_block = title_block.style(active_style),
+            AddingMovie::DateWatched => date_block = date_block.style(active_style),
+            AddingMovie::Rating => rating_block = rating_block.style(active_style),
+        };
+
+        let title_text = Paragraph::new(app.movie_name_input.clone()).block(title_block);
+        f.render_widget(title_text, popup_chunks[0]);
+
+        let date_text = Paragraph::new(app.date_watched_input.clone()).block(date_block);
+        f.render_widget(date_block, popup_chunks[1]);
+    }
 }

@@ -9,10 +9,7 @@ use ratatui::{
 
 use serde::ser::{Serialize, Serializer, SerializeStruct};
 
-use time::Date;
-use time::format_description;
-use time::macros::date;
-
+use chrono::DateTime;
 use std::fmt;
 
 pub enum CurrentScreen {
@@ -22,10 +19,9 @@ pub enum CurrentScreen {
     Exiting,
 }
 
-pub struct WatchDate(Date);
 
 pub struct MovieInfo{
-    pub date_watched: Date,
+    pub date_watched: DateTime,
     pub rating: String,
 }
 
