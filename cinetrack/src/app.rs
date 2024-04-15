@@ -1,17 +1,15 @@
 use std::process::Output;
 
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
+use openssl::derive;
 use ratatui::{
     prelude::*,
     symbols::border,
-    widgets::{block::*,*},
+    widgets::{block::*, *},
 };
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
-
-
-
-use chrono::{DateTime, TimeZone, Utc};
+use chrono::{NaiveDate, TimeZone, Utc};
 use std::fmt;
 
 pub enum CurrentScreen {
@@ -20,10 +18,9 @@ pub enum CurrentScreen {
     MoviePage,
     Exiting,
 }
-
-
-pub struct MovieInfo{
-    pub date_watched: DateTime<Utc>,
+#[derive(Serialize)]
+pub struct MovieInfo {
+    pub date_watched: NaiveDate,
     pub rating: String,
 }
 
@@ -33,9 +30,9 @@ pub enum AddingMovie {
     Rating,
 }
 
-pub struct App{
+pub struct App {
     pub movie_name_input: String,
-    pub date_watched_input: Vec<u8>,
+    pub date_watched_input: String,
     pub rating_input: String,
     pub entries: std::collections::HashMap<String, MovieInfo>, //should probably make movie info struct
     pub current_screen: CurrentScreen,
@@ -43,21 +40,16 @@ pub struct App{
 }
 
 impl fmt::Display for MovieInfo {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Date: {} Rating: {}", self.date_watched, self.rating)
     }
 }
 
-impl Serialize for MovieInfo {
-    
-}
-
-
 impl App {
-    pub fn new() -> App{
+    pub fn new() -> App {
         App {
             movie_name_input: String::new(),
-            date_watched_input: Vec::new(),
+            date_watched_input: String::new(),
             rating_input: String::new(),
             entries: std::collections::HashMap::new(),
             current_screen: CurrentScreen::Main,
@@ -65,33 +57,29 @@ impl App {
         }
     }
 
-    pub fn save_new_movie(&mut self){
+    pub fn save_new_movie(&mut self) {
         let new_movie_info = MovieInfo {
-            date_watched: self. date_watched_input.clone(),
+            date_watched: NaiveDate::parse_from_str(&self.date_watched_input.clone(), "%Y-%m-%d")
+                .unwrap(), //need error handling
             rating: self.rating_input.clone(),
         };
-        
-        self.entries.insert(self.movie_name_input.clone(), new_movie_info);
+
+        self.entries
+            .insert(self.movie_name_input.clone(), new_movie_info);
 
         self.movie_name_input = String::new();
         self.rating_input = String::new();
-        self.date_watched_input = Date::from_ordinal_date(1990, 355).unwrap();
+        self.date_watched_input = String::new();
 
-        self.currently_editing = None; 
+        self.currently_editing = None;
     }
 
-    pub fn toggle_editing(&mut self){
+    pub fn toggle_editing(&mut self) {
         if let Some(edit_mode) = &self.currently_editing {
-            match edit_mode{
-                AddingMovie::Title => {
-                    self.currently_editing = Some(AddingMovie::Title)
-                }
-                AddingMovie::Rating => {
-                    self.currently_editing = Some(AddingMovie::Rating)
-                }
-                AddingMovie::DateWatched => {
-                    self.currently_editing = Some(AddingMovie::DateWatched)
-                }
+            match edit_mode {
+                AddingMovie::Title => self.currently_editing = Some(AddingMovie::Title),
+                AddingMovie::Rating => self.currently_editing = Some(AddingMovie::Rating),
+                AddingMovie::DateWatched => self.currently_editing = Some(AddingMovie::DateWatched),
             };
         } else {
             self.currently_editing = Some(AddingMovie::Title);
@@ -103,5 +91,4 @@ impl App {
         println!("{}", movie_list);
         Ok(())
     }
-
 }
