@@ -1,27 +1,17 @@
-use std::process::Output;
+use serde::Serialize;
 
-use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
-use openssl::derive;
-use ratatui::{
-    prelude::*,
-    symbols::border,
-    widgets::{block::*, *},
-};
-use serde::{Deserialize, Serialize};
-
-use chrono::{NaiveDate, TimeZone, Utc};
+use chrono::NaiveDate;
 use std::fmt;
 
 pub enum CurrentScreen {
     Main,
-    //UserPage, add later
     MoviePage,
     Exiting,
 }
 #[derive(Serialize)]
 pub struct MovieInfo {
     pub date_watched: NaiveDate,
-    pub rating: String,
+    pub rating: Rating,
 }
 
 pub enum AddingMovie {
@@ -30,14 +20,40 @@ pub enum AddingMovie {
     Rating,
 }
 
+pub struct Rating{
+    pub score : u8,
+    pub total : u8, //score out of, user will change later
+}
+
+impl Rating{
+    fn new() -> Rating{
+        let mut rating = Rating{
+            score : 0,
+            total : 5,
+        };
+        rating
+    }
+    fn set_score(&mut self, argscore : u8){
+        self.score = argscore;
+    }
+}
+
 pub struct App {
     pub movie_name_input: String,
     pub date_watched_input: String,
-    pub rating_input: String,
+    pub rating_input: u8,
     pub entries: std::collections::HashMap<String, MovieInfo>, //should probably make movie info struct
     pub current_screen: CurrentScreen,
     pub currently_editing: Option<AddingMovie>,
 }
+
+impl fmt::Display for Rating {
+    // This function must write the desired format into the given formatter
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Score: {}/{}", self.score, self.total) // Custom format for display
+    }
+}
+
 
 impl fmt::Display for MovieInfo {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -50,7 +66,7 @@ impl App {
         App {
             movie_name_input: String::new(),
             date_watched_input: String::new(),
-            rating_input: String::new(),
+            rating_input: 0,
             entries: std::collections::HashMap::new(),
             current_screen: CurrentScreen::Main,
             currently_editing: None,
@@ -58,18 +74,21 @@ impl App {
     }
 
     pub fn save_new_movie(&mut self) {
+        let mut movie_rating= Rating::new();
+        movie_rating.set_score(self.rating_input.clone());
+
         let new_movie_info = MovieInfo {
             date_watched: NaiveDate::parse_from_str(&self.date_watched_input.clone(), "%Y-%m-%d")
                 .unwrap(), //need error handling
-            rating: self.rating_input.clone(),
+            rating: movie_rating,
         };
 
         self.entries
             .insert(self.movie_name_input.clone(), new_movie_info);
 
         self.movie_name_input = String::new();
-        self.rating_input = String::new();
         self.date_watched_input = String::new();
+        self.rating_input = 0;
 
         self.currently_editing = None;
     }
