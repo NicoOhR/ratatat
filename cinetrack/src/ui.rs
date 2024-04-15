@@ -57,7 +57,7 @@ pub fn ui(f: &mut Frame, app: &App) {
 
     for movie in app.entries.keys() {
         list_items.push(ListItem::new(Line::from(Span::styled(
-            format!("{: <25} : {}", movie, app.entries.get(movie).unwrap()),
+            format!("Title: {} : {}", movie, app.entries.get(movie).unwrap()),
             Style::default().fg(Color::Yellow),
         ))));
     }
@@ -101,8 +101,8 @@ pub fn ui(f: &mut Frame, app: &App) {
     let current_keys_hint = {
         match app.current_screen {
             CurrentScreen::Main => Span::styled("(q) to quit", Style::default().fg(Color::Red)),
-            CurrentScreen::Exiting => Span::styled("cancel", Style::default().fg(Color::Red)),
-            CurrentScreen::MoviePage => Span::styled("quit", Style::default().fg(Color::Red)),
+            CurrentScreen::Exiting => Span::styled("(ESC) to cancel/(Tab) to switch boxes/enter to complete", Style::default().fg(Color::Red)),
+            CurrentScreen::MoviePage => Span::styled("(q) to quit / (e) to make new pair", Style::default().fg(Color::Red)),
         }
     };
 
@@ -122,7 +122,7 @@ pub fn ui(f: &mut Frame, app: &App) {
             .title("Enter a new movie")
             .borders(Borders::NONE)
             .style(Style::default().bg(Color::DarkGray));
-        let area = centered_rect(60, 25, f.size());
+        let area = centered_rect(60, 20, f.size());
         f.render_widget(popup_block, area);
 
         let popup_chunks = Layout::default()
