@@ -1,4 +1,4 @@
-use serde::Serialize;
+use serde::ser::{Serialize, SerializeStruct, Serializer};
 
 use chrono::NaiveDate;
 use std::fmt;
@@ -8,7 +8,6 @@ pub enum CurrentScreen {
     MoviePage,
     Exiting,
 }
-#[derive(Serialize)]
 pub struct MovieInfo {
     pub date_watched: NaiveDate,
     pub rating: Rating,
@@ -19,32 +18,47 @@ pub enum AddingMovie {
     DateWatched,
     Rating,
 }
-
-pub struct Rating{
-    pub score : u8,
-    pub total : u8, //score out of, user will change later
+#[derive(Clone)]
+pub struct Rating {
+    pub score: u8,
+    pub total: u8, //score out of, user will change later
 }
 
-impl Rating{
-    fn new() -> Rating{
-        let mut rating = Rating{
-            score : 0,
-            total : 5,
-        };
+impl Rating {
+    fn new() -> Rating {
+        let mut rating = Rating { score: 0, total: 5 };
         rating
     }
-    fn set_score(&mut self, argscore : u8){
+    fn set_score(&mut self, argscore: u8) {
         self.score = argscore;
+    }
+    pub fn increment(&mut self) {
+        self.score += 1;
+    }
+    pub fn decrement(&mut self) {
+        self.score -= 1;
     }
 }
 
 pub struct App {
     pub movie_name_input: String,
     pub date_watched_input: String,
-    pub rating_input: u8,
+    pub rating_input: Rating,
     pub entries: std::collections::HashMap<String, MovieInfo>, //should probably make movie info struct
     pub current_screen: CurrentScreen,
     pub currently_editing: Option<AddingMovie>,
+}
+
+impl Serialize for Rating {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut state = serializer.serialize_struct("Rating", 2)?;
+        state.serialize_field("score", &self.score)?;
+        state.serialize_field("total", &self.total)?;
+        state.end()
+    }
 }
 
 impl fmt::Display for Rating {
@@ -53,8 +67,17 @@ impl fmt::Display for Rating {
         write!(f, "Score: {}/{}", self.score, self.total) // Custom format for display
     }
 }
-
-
+impl Serialize for MovieInfo {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut state = serializer.serialize_struct("MovieInfo", 2)?;
+        state.serialize_field("Date Watched", &self.date_watched)?;
+        state.serialize_field("Rating", &self.rating)?;
+        state.end()
+    }
+}
 impl fmt::Display for MovieInfo {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Date: {} Rating: {}", self.date_watched, self.rating)
@@ -66,7 +89,7 @@ impl App {
         App {
             movie_name_input: String::new(),
             date_watched_input: String::new(),
-            rating_input: 0,
+            rating_input: Rating::new(),
             entries: std::collections::HashMap::new(),
             current_screen: CurrentScreen::Main,
             currently_editing: None,
@@ -74,8 +97,8 @@ impl App {
     }
 
     pub fn save_new_movie(&mut self) {
-        let mut movie_rating= Rating::new();
-        movie_rating.set_score(self.rating_input.clone());
+        let mut movie_rating = Rating::new();
+        movie_rating.set_score(self.rating_input.score.clone());
 
         let new_movie_info = MovieInfo {
             date_watched: NaiveDate::parse_from_str(&self.date_watched_input.clone(), "%Y-%m-%d")
@@ -88,7 +111,7 @@ impl App {
 
         self.movie_name_input = String::new();
         self.date_watched_input = String::new();
-        self.rating_input = 0;
+        self.rating_input = Rating::new();
 
         self.currently_editing = None;
     }

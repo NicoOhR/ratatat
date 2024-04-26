@@ -101,9 +101,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                                 AddingMovie::Title => {
                                     app.movie_name_input.pop();
                                 }
-                                AddingMovie::Rating => {
-                                    app.rating_input.pop();
-                                }
+                                _ => (),
                             }
                         }
                     }
@@ -114,8 +112,24 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                         if let Some(editing) = &app.currently_editing {
                             match editing {
                                 AddingMovie::Title => app.movie_name_input.push(value),
-                                AddingMovie::Rating => app.rating_input.push(value),
                                 AddingMovie::DateWatched => app.date_watched_input.push(value),
+                                _ => (),
+                            }
+                        }
+                    }
+                    KeyCode::Up => {
+                        if let Some(editing) = &app.currently_editing {
+                            match editing {
+                                AddingMovie::Rating => app.rating_input.increment(),
+                                _ => (),
+                            }
+                        }
+                    }
+                    KeyCode::Down => {
+                        if let Some(editing) = &app.currently_editing {
+                            match editing {
+                                AddingMovie::Rating => app.rating_input.decrement(),
+                                _ => (),
                             }
                         }
                     }
@@ -126,4 +140,3 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
         }
     }
 }
-

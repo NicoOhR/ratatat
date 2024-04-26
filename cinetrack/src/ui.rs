@@ -101,8 +101,14 @@ pub fn ui(f: &mut Frame, app: &App) {
     let current_keys_hint = {
         match app.current_screen {
             CurrentScreen::Main => Span::styled("(q) to quit", Style::default().fg(Color::Red)),
-            CurrentScreen::Exiting => Span::styled("(ESC) to cancel/(Tab) to switch boxes/enter to complete", Style::default().fg(Color::Red)),
-            CurrentScreen::MoviePage => Span::styled("(q) to quit / (e) to make new pair", Style::default().fg(Color::Red)),
+            CurrentScreen::Exiting => Span::styled(
+                "(ESC) to cancel/(Tab) to switch boxes/enter to complete",
+                Style::default().fg(Color::Red),
+            ),
+            CurrentScreen::MoviePage => Span::styled(
+                "(q) to quit / (e) to make new pair",
+                Style::default().fg(Color::Red),
+            ),
         }
     };
 
@@ -153,7 +159,9 @@ pub fn ui(f: &mut Frame, app: &App) {
         let date_text = Paragraph::new(app.date_watched_input.clone()).block(date_block);
         f.render_widget(date_text, popup_chunks[1]);
 
-        let rating_text = Paragraph::new(app.rating_input.clone()).block(rating_block);
+        let rating_text =
+            Paragraph::new(format!("{}", app.rating_input.clone())).block(rating_block);
+
         f.render_widget(rating_text, popup_chunks[2]);
 
         if let CurrentScreen::Exiting = app.current_screen {
@@ -177,4 +185,3 @@ pub fn ui(f: &mut Frame, app: &App) {
         }
     }
 }
-
